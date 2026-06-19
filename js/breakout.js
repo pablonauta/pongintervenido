@@ -118,6 +118,8 @@ class Control
     static flechaIzquierda = false;
     static flechaArriba = false;
     static flechaAbajo = false;
+    static w = false;
+    static s = false;
     static enter = false;
 
     constructor ()
@@ -154,6 +156,14 @@ class Control
 
             case 'ArrowDown':
                 Control.flechaAbajo = evt.type === 'keydown';
+                break;
+
+            case 'KeyW':
+                Control.w = evt.type === 'keydown';
+                break;
+
+            case 'KeyS':
+                Control.s = evt.type === 'keydown';
                 break;
 
             case 'Enter':
@@ -263,59 +273,50 @@ class ColorPaleta extends Entidad
 
 class Jugador extends Entidad
 {
-    #canMove = true;
-
-    constructor ()
+    constructor (lado, teclaArriba, teclaAbajo, color = 9)
     {
         super();
 
+        this.lado = lado;
+        this.teclaArriba = teclaArriba;
+        this.teclaAbajo = teclaAbajo;
+
         this.width = 20;
         this.height = 120;
-        this.color = 9;
+        this.color = color;
 
         this.posicionInicial();
     }
 
     posicionInicial ()
     {
-        this.x = gameArea.x2 - this.width;
+        if (this.lado === 'derecha')
+        {
+            this.x = gameArea.x2 - this.width;
+        }
+        else
+        {
+            this.x = gameArea.x1;
+        }
+
         this.y = (gameArea.y2 - gameArea.y1) / 2 + gameArea.y1 - this.height / 2;
-
-        this.#canMove = false;
-
-        setTimeout(_ => {
-            this.#canMove = true;
-        }, 1000);
     }
 
     update ()
-{
-    this.dx = 0;
-    this.dy = 0;
-
-    if (this.#canMove)
     {
-        if (Control.flechaAbajo) this.dy = this.velocidad;
-        if (Control.flechaArriba) this.dy += -this.velocidad;
-    }
-
-    super.update();
-
-    if (this.y <= gameArea.y1)
-    {
-        this.y = gameArea.y1;
+        this.dx = 0;
         this.dy = 0;
-    }
 
-    if (this.y >= gameArea.y2 - this.height)
-    {
-        this.y = gameArea.y2 - this.height;
-        this.dy = 0;
-    }
-}
-    onColision (ent)
-    {
-        this.color = this.color === 9 ? 14 : 9;
+        if (Control[this.teclaArriba]) this.dy = -this.velocidad;
+        if (Control[this.teclaAbajo]) this.dy = this.velocidad;
+
+        super.update();
+
+        if (this.y <= gameArea.y1)
+            this.y = gameArea.y1;
+
+        if (this.y >= gameArea.y2 - this.height)
+            this.y = gameArea.y2 - this.height;
     }
 }
 
@@ -367,7 +368,7 @@ class Ladrillo extends Entidad
 class Pelota extends Entidad
 {
     #radio = 10;
-    #jugador = null;
+    //#jugador = null;
 
     constructor ()
     {
@@ -381,17 +382,17 @@ class Pelota extends Entidad
         this.posicionInicial();
     }
 
-    get jugador ()
-    {
-        return this.#jugador;
-    }
+    // get jugador ()
+    // {
+    //     return this.#jugador;
+    // }
 
-    set jugador (val)
-    {
-        this.#jugador = val;
+    // set jugador (val)
+    // {
+    //     this.#jugador = val;
 
-        return val;
-    }
+    //     return val;
+    // }
 
     get width ()
     {
@@ -485,7 +486,7 @@ class Pelota extends Entidad
             if (vidas <= 0)
             {
                 // Se terminó el juego
-                this.#jugador.remove();
+                //this.#jugador.remove();
                 this.remove();
 
                 finjuego = true;
@@ -496,7 +497,7 @@ class Pelota extends Entidad
                 this.posicionInicial();
                 this.resetMovimiento();
 
-                this.#jugador.posicionInicial();
+                //this.#jugador.posicionInicial();
             }
 
             return;
@@ -644,11 +645,14 @@ function init ()
 {
     Control.getInstance();
 
-    const j = new Jugador();
-    j.velocidad = 5;
+    let jugador1 = new Jugador('derecha', 'flechaArriba', 'flechaAbajo', 9);
+    jugador1.velocidad = 5;
+
+    let jugador2 = new Jugador('izquierda', 'w', 's', 12);
+    jugador2.velocidad = 5;
 
     const p = new Pelota();
-    p.jugador = j;
+    
     p.resetMovimiento();
 
     // p.dx = 4 * (Math.random() < .5 ? -1 : 1);
