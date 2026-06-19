@@ -141,7 +141,14 @@ function crearPersonaje()
     const y = desdeArriba ? gameArea.y1 - 30 : gameArea.y2 - 1;
     const dy = desdeArriba ? 1 : -1;
 
-    new Acelerador(x, y, dy);
+    if (Math.random() < 0.5)
+    {
+        new Acelerador(x, y, dy);
+    }
+    else
+    {
+        new Venenoso(x, y, dy);
+    }
 }
 
 
@@ -655,6 +662,92 @@ class Personaje extends Entidad
     }
 
 
+}
+
+class Venenoso extends Personaje
+{
+    constructor(x, y, dy)
+    {
+        super();
+
+        this.x = x;
+        this.y = y;
+
+        this.width = 30;
+        this.height = 30;
+        this.color = 11; // verde
+
+        this.dy = dy;
+        this.dx = Math.random() * 2 - 1;
+
+        this.cambioX = 0.03;
+
+        this.rebotesVerticales = 0;
+        this.maxRebotesVerticales = 1;
+    }
+
+    update()
+    {
+        this.y += this.dy;
+        this.x += this.dx;
+
+        this.dx += Math.random() * this.cambioX - this.cambioX / 2;
+
+        if (this.dx > 2) this.dx = 2;
+        if (this.dx < -2) this.dx = -2;
+
+        if (this.x <= gameArea.x1 || this.x >= gameArea.x2 - this.width)
+        {
+            this.dx *= -1;
+        }
+
+        this.tocarJugadores();
+
+        if (this.dy > 0 && this.y >= gameArea.y2 - this.height)
+        {
+            this.y = gameArea.y2 - this.height;
+            this.dy *= -1;
+            this.rebotesVerticales++;
+        }
+
+        if (this.dy < 0 && this.y <= gameArea.y1)
+        {
+            this.y = gameArea.y1;
+            this.dy *= -1;
+            this.rebotesVerticales++;
+        }
+
+        if (this.rebotesVerticales > this.maxRebotesVerticales)
+        {
+            this.remove();
+        }
+    }
+
+    tocarJugadores()
+    {
+        for (const e of Entidad.entidades)
+        {
+            if (e instanceof Jugador && colision(this, e))
+            {
+                e.velocidad = 2;
+
+                setTimeout(() => {
+                    e.velocidad = 5;
+                }, 3000);
+
+                this.remove();
+                return;
+            }
+        }
+    }
+
+    onColision(pelota)
+    {
+        if (!(pelota instanceof Pelota)) return;
+
+        this.dy *= -1;
+        this.dx *= -1;
+    }
 }
 
 class Acelerador extends Personaje
