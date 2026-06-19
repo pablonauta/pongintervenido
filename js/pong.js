@@ -679,6 +679,8 @@ class Acelerador extends Personaje
 
         this.rebotesVerticales = 0;
         this.maxRebotesVerticales = 1;
+
+        this.recuperando = false;
     }
 
     update()
@@ -729,6 +731,21 @@ class Acelerador extends Personaje
 
             this.dy *= -1;
         }
+    }
+
+    onColision(pelota)
+    {
+        if (!(pelota instanceof Pelota)) return;
+
+        if (this.recuperando) return;
+
+        console.log("aceleró");
+
+        pelota.acelerar(0.5);
+
+        this.dy *= -1;
+        this.dx *= 2;
+        this.recuperando = true;
     }
 }
 
