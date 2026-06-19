@@ -382,6 +382,9 @@ class Pelota extends Entidad
 
         this.color = 1;
 
+        this.velocidadInicial = 4;
+        this.velocidad = this.velocidadInicial;
+
         this.posicionInicial();
     }
 
@@ -448,18 +451,18 @@ class Pelota extends Entidad
 
     resetMovimiento ()
     {
-        const dx = 4 * (Math.random() < .5 ? -1 : 1);
-        const dy = -4;
+        this.velocidad = this.velocidadInicial;
+
+        const dx = this.velocidad * (Math.random() < .5 ? -1 : 1);
+        const dy = this.velocidad * (Math.random() < .5 ? -1 : 1);
 
         this.dx = 0;
         this.dy = 0;
 
-        const fn = _ => {
+        setTimeout(() => {
             this.dx = dx;
             this.dy = dy;
-        };
-
-        setTimeout(fn, 2000);
+        }, 2000);
     }
 
     update ()
