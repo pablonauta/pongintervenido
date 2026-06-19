@@ -116,6 +116,8 @@ class Control
     // Teclas
     static flechaDerecha = false;
     static flechaIzquierda = false;
+    static flechaArriba = false;
+    static flechaAbajo = false;
     static enter = false;
 
     constructor ()
@@ -144,6 +146,14 @@ class Control
 
             case 'ArrowLeft':
                 Control.flechaIzquierda = evt.type === 'keydown';
+                break;
+
+            case 'ArrowUp':
+                Control.flechaArriba = evt.type === 'keydown';
+                break;
+
+            case 'ArrowDown':
+                Control.flechaAbajo = evt.type === 'keydown';
                 break;
 
             case 'Enter':
@@ -259,8 +269,8 @@ class Jugador extends Entidad
     {
         super();
 
-        this.width = 120;
-        this.height = 20;
+        this.width = 20;
+        this.height = 120;
         this.color = 9;
 
         this.posicionInicial();
@@ -268,8 +278,8 @@ class Jugador extends Entidad
 
     posicionInicial ()
     {
-        this.x = (gameArea.x2 - gameArea.x1) / 2 + gameArea.x1 - this.width / 2;
-        this.y = gameArea.y2 - this.height;
+        this.x = gameArea.x2 - this.width;
+        this.y = (gameArea.y2 - gameArea.y1) / 2 + gameArea.y1 - this.height / 2;
 
         this.#canMove = false;
 
@@ -279,30 +289,30 @@ class Jugador extends Entidad
     }
 
     update ()
+{
+    this.dx = 0;
+    this.dy = 0;
+
+    if (this.#canMove)
     {
-        this.dx = 0;
-
-        if (this.#canMove)
-        {
-            if (Control.flechaDerecha) this.dx = this.velocidad;
-            if (Control.flechaIzquierda) this.dx += -this.velocidad;
-        }
-
-        super.update();
-
-        if (this.x <= gameArea.x1)
-        {
-            this.x = gameArea.x1;
-            this.dx = 0;
-        }
-
-        if (this.x >= gameArea.x2 - this.width)
-        {
-            this.x = gameArea.x2 - this.width;
-            this.dx = 0;
-        }
+        if (Control.flechaAbajo) this.dy = this.velocidad;
+        if (Control.flechaArriba) this.dy += -this.velocidad;
     }
 
+    super.update();
+
+    if (this.y <= gameArea.y1)
+    {
+        this.y = gameArea.y1;
+        this.dy = 0;
+    }
+
+    if (this.y >= gameArea.y2 - this.height)
+    {
+        this.y = gameArea.y2 - this.height;
+        this.dy = 0;
+    }
+}
     onColision (ent)
     {
         this.color = this.color === 9 ? 14 : 9;
@@ -652,18 +662,18 @@ function init ()
     const lw = (gameArea.x2 - gameArea.x1 - gap * div - padding * 2) / cantCols;
     const lh = 20;
 
-    for (let j = 0; j < cantFilas; j++)
-    {
-        const filay = gameArea.y1 + padding + (lh + gap) * j;
+    // for (let j = 0; j < cantFilas; j++)
+    // {
+    //     const filay = gameArea.y1 + padding + (lh + gap) * j;
 
-        for (let i = 0; i < cantCols; i++)
-        {
-            const e = new Ladrillo(lw, lh, cantFilas - j);
-            e.x = (lw + gap) * i + padding + gameArea.x1;
-            e.y = filay;
-            e.puntos = e.vida * 10;
-        }
-    }
+    //     for (let i = 0; i < cantCols; i++)
+    //     {
+    //         const e = new Ladrillo(lw, lh, cantFilas - j);
+    //         e.x = (lw + gap) * i + padding + gameArea.x1;
+    //         e.y = filay;
+    //         e.puntos = e.vida * 10;
+    //     }
+    // }
 
     // Vars globales
     vidas = 3;
