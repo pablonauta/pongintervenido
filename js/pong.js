@@ -27,6 +27,12 @@ let puntosIzquierda = 0;
 let puntosDerecha = 0;
 let finjuego = false;
 
+let maxPersonajes = 3;
+let tiempoSpawnPersonaje = 0;
+let proximoDesdeArriba = true;
+
+const TIEMPO_RESPAWN = 60;
+
 
 function cls ()
 {
@@ -110,6 +116,34 @@ function showPaleta (mostrar = true)
         ent_paleta = [];
     }
 }
+
+function contarPersonajes()
+{
+    let total = 0;
+
+    for (const e of Entidad.entidades)
+    {
+        if (e instanceof Personaje)
+        {
+            total++;
+        }
+    }
+
+    return total;
+}
+
+function crearPersonaje()
+{
+    const desdeArriba = proximoDesdeArriba;
+    proximoDesdeArriba = !proximoDesdeArriba;
+
+    const x = gameArea.x1 + Math.random() * (gameArea.x2 - gameArea.x1 - 30);
+    const y = desdeArriba ? gameArea.y1 - 30 : gameArea.y2 - 1;
+    const dy = desdeArriba ? 1 : -1;
+
+    new Acelerador(x, y, dy);
+}
+
 
 class Control
 {
@@ -595,6 +629,17 @@ if (this.x >= gameArea.x2 - this.width)
 
 class Personaje extends Entidad
 {
+    rebotarConJugadores()
+    {
+        for (const e of Entidad.entidades)
+        {
+            if (e instanceof Jugador && colision(this, e))
+            {
+                this.dx *= -1;
+            }
+        }
+    }
+
     update()
     {
         super.update();
@@ -608,6 +653,8 @@ class Personaje extends Entidad
             this.x = -this.width;
         }
     }
+
+
 }
 
 class Acelerador extends Personaje
@@ -629,34 +676,61 @@ class Acelerador extends Personaje
 
         this.dx = Math.random() * 2 - 1;
         this.cambioX = 0.03;
+
+        this.rebotesVerticales = 0;
+        this.maxRebotesVerticales = 1;
     }
 
     update()
-{
-    this.y += this.dy;
-    this.x += this.dx;
-
-    // cambia un poquito la dirección horizontal
-    this.dx += Math.random() * this.cambioX - this.cambioX / 2;
-
-    // limita para que no se vaya demasiado rápido de costado
-    if (this.dx > 2) this.dx = 2;
-    if (this.dx < -2) this.dx = -2;
-
-    // rebota contra los laterales
-    if (this.x <= gameArea.x1 || this.x >= gameArea.x2 - this.width)
     {
-        this.dx *= -1;
+        this.y += this.dy;
+        this.x += this.dx;
+
+        this.rebotarConJugadores();
+
+        // cambia un poquito la dirección horizontal
+        this.dx += Math.random() * this.cambioX - this.cambioX / 2;
+
+        // limita para que no se vaya demasiado rápido de costado
+        if (this.dx > 2) this.dx = 2;
+        if (this.dx < -2) this.dx = -2;
+
+        // rebota contra los laterales
+        if (this.x <= gameArea.x1 || this.x >= gameArea.x2 - this.width)
+        {
+            this.dx *= -1;
+        }
+
+        // se muere si se sale por arriba o abajo
+        if (this.dy > 0 && this.y >= gameArea.y2 - this.height)
+        {
+            this.y = gameArea.y2 - this.height;
+            this.rebotesVerticales++;
+
+            if (this.rebotesVerticales > this.maxRebotesVerticales)
+            {
+                this.remove();
+                return;
+            }
+
+            this.dy *= -1;
+        }
+
+        if (this.dy < 0 && this.y <= gameArea.y1)
+        {
+            this.y = gameArea.y1;
+            this.rebotesVerticales++;
+
+            if (this.rebotesVerticales > this.maxRebotesVerticales)
+            {
+                this.remove();
+                return;
+            }
+
+            this.dy *= -1;
+        }
     }
-
-    // se muere si se sale por arriba o abajo
-    if (this.y > gameArea.y2 || this.y + this.height < gameArea.y1)
-{
-    this.remove();
 }
-}
-}
-
 
 
 function hud ()
@@ -771,8 +845,11 @@ function init ()
     // const a = new Acelerador(width / 2 - 80, -30, 1);
     // const b = new Acelerador(width / 2 + 80, gameArea.y2 + 30, -1);
 
-    new Acelerador(width / 2 - 80, gameArea.y1 - 30, 1);
-    new Acelerador(width / 2 + 80, gameArea.y2 + 5, -1);
+    // new Acelerador(width / 2 - 80, gameArea.y1 - 30, 1);
+    // new Acelerador(width / 2 + 80, gameArea.y2 + 5, -1);
+
+    crearPersonaje();
+    crearPersonaje();
     
     p.resetMovimiento();
 
@@ -809,13 +886,23 @@ function init ()
 
 function update ()
 {
-	for (const e of Entidad.entidades)
-	{
-		e.update();
-	}
+    if (contarPersonajes() < maxPersonajes && tiempoSpawnPersonaje <= 0)
+    {
+        crearPersonaje();
+
+        tiempoSpawnPersonaje = TIEMPO_RESPAWN;
+    }
+
+    tiempoSpawnPersonaje--;
+
+    for (const e of Entidad.entidades)
+    {
+        e.update();
+    }
+
 }
 
-function draw ()
+    function draw ()
 {
     cls();
     
