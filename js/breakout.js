@@ -23,7 +23,10 @@ const paleta = [
 ];
 
 // Vars globales del juego
-let vidas, puntos, finjuego = false;
+let puntosIzquierda = 0;
+let puntosDerecha = 0;
+let finjuego = false;
+
 
 function cls ()
 {
@@ -440,7 +443,7 @@ class Pelota extends Entidad
     posicionInicial ()
     {
         this.x = (gameArea.x2 - gameArea.x1) / 2 + gameArea.x1 - this.#radio;
-        this.y = gameArea.y2 - this.height * 2.2;
+        this.y = (gameArea.y2 - gameArea.y1) / 2 + gameArea.y1 - this.#radio;
     }
 
     resetMovimiento ()
@@ -460,82 +463,81 @@ class Pelota extends Entidad
     }
 
     update ()
+{
+    if (finjuego)
     {
-        // Update de la entidad
-        // Cambia la posición de la pelota
-        super.update();
-        
-        // Rebote con escenario en horizontal
-        if (this.x <= gameArea.x1 || this.x >= gameArea.x2 - this.width)
+        this.dx = 0;
+        this.dy = 0;
+        return;
+    }
+
+    super.update();
+
+   
+
+    // Rebote arriba y abajo
+    if (this.y <= gameArea.y1 || this.y >= gameArea.y2 - this.height)
+    {
+        this.dy *= -1;
+    }
+
+    // Gol para la derecha
+if (this.x <= gameArea.x1)
+{
+    puntosDerecha++;
+
+    if (puntosDerecha >= 10)
+    {
+        finjuego = true;
+    }
+
+    this.posicionInicial();
+    this.resetMovimiento();
+    return;
+}
+
+// Gol para la izquierda
+if (this.x >= gameArea.x2 - this.width)
+{
+    puntosIzquierda++;
+
+    if (puntosIzquierda >= 10)
+    {
+        finjuego = true;
+    }
+
+    this.posicionInicial();
+    this.resetMovimiento();
+    return;
+}
+
+    for (const e of Entidad.entidades)
+    {
+        if (e === this) continue;
+
+        if (colision(this, e))
         {
-            this.dx *= -1;
-        }
+            let pdy = this.dy;
+            this.y -= pdy;
 
-        // Rebote con escenario en vertical
-        if (this.y <= gameArea.y1)
-        {
-            this.dy *= -1;
-        }
+            if (!colision(this, e)) this.dy *= -1;
 
-        // ¿La pelota está tocando "abajo"?
-        if (this.y >= gameArea.y2 - this.height)
-        {
-            // Acá se perdió una vida
-            vidas -= 1;
+            this.y += pdy;
 
-            if (vidas <= 0)
+            let pdx = this.dx;
+            this.x -= pdx;
+
+            if (!colision(this, e)) this.dx *= -1;
+
+            this.x += pdx;
+
+            if (e.onColision !== undefined)
             {
-                // Se terminó el juego
-                //this.#jugador.remove();
-                this.remove();
-
-                finjuego = true;
-            }
-            else
-            {
-                // Reset de escenario
-                this.posicionInicial();
-                this.resetMovimiento();
-
-                //this.#jugador.posicionInicial();
-            }
-
-            return;
-        }
-
-        for (const e of Entidad.entidades)
-        {
-            // ¿Esta entidad, es la pelota? Si es así, saltear la verificación
-            if (e === this)
-            {
-                continue; // Saltea este paso del ciclo
-            }
-
-            if (colision(this, e))
-            {
-                // Verificar verticalmente
-                let pdy = this.dy;
-                this.y -= pdy; // Movemos para atrás un paso
-
-                if (!colision(this, e)) this.dy *= -1;
-
-                this.y += pdy;
-
-                // Verificar horizontalmente
-                let pdx = this.dx;
-                this.x -= pdx;
-
-                if (!colision(this, e)) this.dx *= -1;
-
-                this.x += pdx;
-
-                if (e.onColision !== undefined)
-                {
-                    e.onColision(this);
-                }
+                e.onColision(this);
             }
         }
     }
+}
 
     draw ()
     {
@@ -569,51 +571,65 @@ function hud ()
         gameArea.y2 - gameArea.y1
     );
 
-    for (let i = 0; i < 4; i++)
-    {
-        textFill("Breakout", 
-            10 + 2 * i, 
-            18 - 2 * i, 
-            11 - i);
-    }
+    // for (let i = 0; i < 4; i++)
+    // {
+    //     textFill("Breakout", 
+    //         10 + 2 * i, 
+    //         18 - 2 * i, 
+    //         11 - i);
+    // }
+
+    // goles
+    textFill(
+        `${puntosIzquierda} - ${puntosDerecha}`,
+        width / 2,
+        20,
+        12,
+        'bold 30px sans',
+        'center',
+        'middle'
+    );
+
+
+
 
     // Puntos
-    textFill(
-        "PUNTOS", 
-        (gameArea.x2 - gameArea.x1) / 2 + gameArea.x1,
-        gameArea.y1 - 2,
-        5,
-        'bold 11px sans',
-        'center',
-        'bottom');
+    // textFill(
+    //     "PUNTOS", 
+    //     (gameArea.x2 - gameArea.x1) / 2 + gameArea.x1,
+    //     gameArea.y1 - 2,
+    //     5,
+    //     'bold 11px sans',
+    //     'center',
+    //     'bottom');
 
-    textFill(
-        puntos,
-        (gameArea.x2 - gameArea.x1) / 2 + gameArea.x1,
-        gameArea.y1 - 14,
-        12,
-        'bold 25px sans',
-        'center',
-        'bottom'
-    );
+    // textFill(
+    //     puntos,
+    //     (gameArea.x2 - gameArea.x1) / 2 + gameArea.x1,
+    //     gameArea.y1 - 14,
+    //     12,
+    //     'bold 25px sans',
+    //     'center',
+    //     'bottom'
+    // );
 
     // Vidas
-    let strvidas = '';
+    // let strvidas = '';
 
-    for (let i = 0; i < vidas; i++)
-    {
-        strvidas +=  '❤️';
-    }
+    // for (let i = 0; i < vidas; i++)
+    // {
+    //     strvidas +=  '❤️';
+    // }
 
-    textFill(
-        strvidas,
-        gameArea.x2,
-        gameArea.y1 - 5,
-        0,
-        'bold 28px sans',
-        'end',
-        'bottom'
-    );
+    // textFill(
+    //     strvidas,
+    //     gameArea.x2,
+    //     gameArea.y1 - 5,
+    //     0,
+    //     'bold 28px sans',
+    //     'end',
+    //     'bottom'
+    // );
 
     if (finjuego)
     {
@@ -680,8 +696,8 @@ function init ()
     // }
 
     // Vars globales
-    vidas = 3;
-    puntos = 0;
+    
+    
 
 	gameloop();
 }
