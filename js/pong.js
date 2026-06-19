@@ -382,7 +382,7 @@ class Pelota extends Entidad
 
         this.color = 1;
 
-        this.velocidadInicial = 4;
+        this.velocidadInicial = 1;
         this.velocidad = this.velocidadInicial;
 
         this.posicionInicial();
@@ -449,6 +449,14 @@ class Pelota extends Entidad
         this.y = (gameArea.y2 - gameArea.y1) / 2 + gameArea.y1 - this.#radio;
     }
 
+    acelerar (cantidad = 0.5)
+    {
+        this.velocidad += cantidad;
+
+        this.dx = this.dx > 0 ? this.velocidad : -this.velocidad;
+        this.dy = this.dy > 0 ? this.velocidad : -this.velocidad;
+    }
+
     resetMovimiento ()
     {
         this.velocidad = this.velocidadInicial;
@@ -485,19 +493,19 @@ class Pelota extends Entidad
     }
 
     // Gol para la derecha
-if (this.x <= gameArea.x1)
-{
-    puntosDerecha++;
-
-    if (puntosDerecha >= 10)
+    if (this.x <= gameArea.x1)
     {
-        finjuego = true;
-    }
+        puntosDerecha++;
 
-    this.posicionInicial();
-    this.resetMovimiento();
-    return;
-}
+        if (puntosDerecha >= 10)
+        {
+            finjuego = true;
+        }
+
+        this.posicionInicial();
+        this.resetMovimiento();
+        return;
+    }
 
 // Gol para la izquierda
 if (this.x >= gameArea.x2 - this.width)
@@ -564,6 +572,92 @@ if (this.x >= gameArea.x2 - this.width)
         }
     }
 }
+
+// class Acelerador extends Entidad
+// {
+//     constructor ()
+//     {
+//         super();
+
+//         this.width = 30;
+//         this.height = 30;
+//         this.color = 8;
+
+//         this.x = width / 2 - this.width / 2;
+//         this.y = gameArea.y1 + 100;
+//     }
+
+//     onColision (pelota)
+//     {
+//         pelota.acelerar(0.5);
+//     }
+// }
+
+class Personaje extends Entidad
+{
+    update()
+    {
+        super.update();
+
+        this.tiempo++;
+
+        this.y = this.yBase + Math.sin(this.tiempo * this.frecuencia) * this.amplitud;
+
+        if (this.x > gameArea.x2)
+        {
+            this.x = -this.width;
+        }
+    }
+}
+
+class Acelerador extends Personaje
+{
+    
+    constructor(x, y, dy)
+    {
+        super();
+
+        this.x = x;
+        this.y = y;
+
+        this.width = 30;
+        this.height = 30;
+
+        this.color = 8;
+
+        this.dy = dy;
+
+        this.dx = Math.random() * 2 - 1;
+        this.cambioX = 0.03;
+    }
+
+    update()
+{
+    this.y += this.dy;
+    this.x += this.dx;
+
+    // cambia un poquito la dirección horizontal
+    this.dx += Math.random() * this.cambioX - this.cambioX / 2;
+
+    // limita para que no se vaya demasiado rápido de costado
+    if (this.dx > 2) this.dx = 2;
+    if (this.dx < -2) this.dx = -2;
+
+    // rebota contra los laterales
+    if (this.x <= gameArea.x1 || this.x >= gameArea.x2 - this.width)
+    {
+        this.dx *= -1;
+    }
+
+    // se muere si se sale por arriba o abajo
+    if (this.y > gameArea.y2 || this.y + this.height < gameArea.y1)
+{
+    this.remove();
+}
+}
+}
+
+
 
 function hud ()
 {
@@ -673,6 +767,12 @@ function init ()
     jugador2.velocidad = 5;
 
     const p = new Pelota();
+
+    // const a = new Acelerador(width / 2 - 80, -30, 1);
+    // const b = new Acelerador(width / 2 + 80, gameArea.y2 + 30, -1);
+
+    new Acelerador(width / 2 - 80, gameArea.y1 - 30, 1);
+    new Acelerador(width / 2 + 80, gameArea.y2 + 5, -1);
     
     p.resetMovimiento();
 
