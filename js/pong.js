@@ -1,4 +1,4 @@
-console.log('BREAKOUT');
+console.log('Pong Intervenido');
 
 // Setup de ambiente
 const lienzo = document.getElementById('lienzo');
@@ -646,13 +646,15 @@ function hud ()
         );
 
         textFill(
-            "FIN DEL JUEGO",
-            width / 2,
-            height / 2,
-            7,
-            'bold 40px sans',
-            'center',
-            'middle'
+            puntosIzquierda > puntosDerecha
+                ? "GANA IZQUIERDA"
+                 : "GANA DERECHA",
+                width / 2,
+                height / 2,
+                7,
+                'bold 40px sans',
+                'center',
+                'middle'
         );
     }
 }
