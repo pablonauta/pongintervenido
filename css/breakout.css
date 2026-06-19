@@ -1,0 +1,26 @@
+html, body
+{
+    padding: 0;
+    margin: 0;
+}
+
+body
+{
+    display: grid;
+    place-content: center;
+    height: 100vh;
+    
+    font-family: system-ui;
+    background: #222;
+}
+
+h1
+{
+    text-align: center;
+}
+
+canvas
+{
+    border: 1px solid;
+    background: #fafafa;
+}
