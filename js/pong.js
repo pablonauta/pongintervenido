@@ -412,7 +412,6 @@ class Ladrillo extends Entidad
 class Pelota extends Entidad
 {
     #radio = 10;
-    //#jugador = null;
 
     constructor ()
     {
@@ -428,18 +427,6 @@ class Pelota extends Entidad
 
         this.posicionInicial();
     }
-
-    // get jugador ()
-    // {
-    //     return this.#jugador;
-    // }
-
-    // set jugador (val)
-    // {
-    //     this.#jugador = val;
-
-    //     return val;
-    // }
 
     get width ()
     {
@@ -613,26 +600,6 @@ if (this.x >= gameArea.x2 - this.width)
         }
     }
 }
-
-// class Acelerador extends Entidad
-// {
-//     constructor ()
-//     {
-//         super();
-
-//         this.width = 30;
-//         this.height = 30;
-//         this.color = 8;
-
-//         this.x = width / 2 - this.width / 2;
-//         this.y = gameArea.y1 + 100;
-//     }
-
-//     onColision (pelota)
-//     {
-//         pelota.acelerar(0.5);
-//     }
-// }
 
 class Personaje extends Entidad
 {
@@ -852,14 +819,6 @@ function hud ()
         gameArea.y2 - gameArea.y1
     );
 
-    // for (let i = 0; i < 4; i++)
-    // {
-    //     textFill("Breakout", 
-    //         10 + 2 * i, 
-    //         18 - 2 * i, 
-    //         11 - i);
-    // }
-
     // goles
     textFill(
         `${puntosIzquierda} - ${puntosDerecha}`,
@@ -870,47 +829,6 @@ function hud ()
         'center',
         'middle'
     );
-
-
-
-
-    // Puntos
-    // textFill(
-    //     "PUNTOS", 
-    //     (gameArea.x2 - gameArea.x1) / 2 + gameArea.x1,
-    //     gameArea.y1 - 2,
-    //     5,
-    //     'bold 11px sans',
-    //     'center',
-    //     'bottom');
-
-    // textFill(
-    //     puntos,
-    //     (gameArea.x2 - gameArea.x1) / 2 + gameArea.x1,
-    //     gameArea.y1 - 14,
-    //     12,
-    //     'bold 25px sans',
-    //     'center',
-    //     'bottom'
-    // );
-
-    // Vidas
-    // let strvidas = '';
-
-    // for (let i = 0; i < vidas; i++)
-    // {
-    //     strvidas +=  '❤️';
-    // }
-
-    // textFill(
-    //     strvidas,
-    //     gameArea.x2,
-    //     gameArea.y1 - 5,
-    //     0,
-    //     'bold 28px sans',
-    //     'end',
-    //     'bottom'
-    // );
 
     if (finjuego)
     {
@@ -952,44 +870,11 @@ function init ()
 
     const p = new Pelota();
 
-    // const a = new Acelerador(width / 2 - 80, -30, 1);
-    // const b = new Acelerador(width / 2 + 80, gameArea.y2 + 30, -1);
-
-    // new Acelerador(width / 2 - 80, gameArea.y1 - 30, 1);
-    // new Acelerador(width / 2 + 80, gameArea.y2 + 5, -1);
-
     crearPersonaje();
     crearPersonaje();
     
     p.resetMovimiento();
 
-    // p.dx = 4 * (Math.random() < .5 ? -1 : 1);
-    // p.dy = -4;
-
-    const cantCols = 7;
-    const cantFilas = 4;
-    const div = cantCols - 1;
-    const gap = 10;
-    const padding = 10;
-    const lw = (gameArea.x2 - gameArea.x1 - gap * div - padding * 2) / cantCols;
-    const lh = 20;
-
-    // for (let j = 0; j < cantFilas; j++)
-    // {
-    //     const filay = gameArea.y1 + padding + (lh + gap) * j;
-
-    //     for (let i = 0; i < cantCols; i++)
-    //     {
-    //         const e = new Ladrillo(lw, lh, cantFilas - j);
-    //         e.x = (lw + gap) * i + padding + gameArea.x1;
-    //         e.y = filay;
-    //         e.puntos = e.vida * 10;
-    //     }
-    // }
-
-    // Vars globales
-    
-    
 
 	gameloop();
 }
