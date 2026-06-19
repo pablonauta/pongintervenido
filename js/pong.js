@@ -364,51 +364,6 @@ class Jugador extends Entidad
     }
 }
 
-class Ladrillo extends Entidad
-{
-    #puntos = 10;
-
-    constructor (w = 100, h = 30, vida = 1)
-    {
-        super();
-
-        this.width = w;
-        this.height = h;
-
-        this.vida = vida;
-        this.color = [
-            0, 12, 11, 10, 8
-        ][ vida ];
-    }
-
-    get puntos ()
-    {
-        return this.#puntos;
-    }
-
-    set puntos (val)
-    {
-        this.#puntos = val;
-        return val;
-    }
-
-    onColision (ent)
-    {
-        this.vida -= 1;
-
-        if (this.vida <= 0)
-        {
-            puntos += this.#puntos;
-
-            this.remove();
-        }
-
-        this.color = [
-            0, 12, 11, 10, 8
-        ][ this.vida ];
-    }
-}
-
 class Pelota extends Entidad
 {
     #radio = 10;
