@@ -325,6 +325,10 @@ class Jugador extends Entidad
         this.teclaArriba = teclaArriba;
         this.teclaAbajo = teclaAbajo;
 
+        this.velocidadNormal = 5;
+        this.velocidad = this.velocidadNormal;
+        this.tiempoRalentizado = 0;
+
         this.width = 20;
         this.height = 120;
         this.color = color;
@@ -346,6 +350,12 @@ class Jugador extends Entidad
         this.y = (gameArea.y2 - gameArea.y1) / 2 + gameArea.y1 - this.height / 2;
     }
 
+    enlentecer()
+    {
+        this.velocidad = 2;
+        this.tiempoRalentizado = 180;
+    }
+
     update ()
     {
         this.dx = 0;
@@ -361,6 +371,16 @@ class Jugador extends Entidad
 
         if (this.y >= gameArea.y2 - this.height)
             this.y = gameArea.y2 - this.height;
+
+        if (this.tiempoRalentizado > 0)
+        {
+            this.tiempoRalentizado--;
+
+            if (this.tiempoRalentizado === 0)
+            {
+                this.velocidad = this.velocidadNormal;
+            }
+        }
     }
 }
 
@@ -653,10 +673,8 @@ class Venenoso extends Personaje
             {
                 e.velocidad = 2;
 
-                setTimeout(() => {
-                    e.velocidad = 5;
-                }, 3000);
-
+                e.enlentecer();
+                
                 this.remove();
                 return;
             }
