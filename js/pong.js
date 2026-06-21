@@ -15,6 +15,7 @@ const gameArea = {
     x2: width - gameMargin, y2: height - gameMargin,
 };
 
+
 // Paleta de colores (PICO-8)
 const paleta = [
 	'#000000', '#1D2B53', '#7E2553', '#008751', '#AB5236', '#5F574F',
@@ -26,12 +27,10 @@ const paleta = [
 let puntosIzquierda = 0;
 let puntosDerecha = 0;
 let finjuego = false;
-
-let maxPersonajes = 3;
-let tiempoSpawnPersonaje = 0;
+let estadoJuego = "inicio";
 let proximoDesdeArriba = true;
 
-const TIEMPO_RESPAWN = 60;
+const PUNTOS_PARA_GANAR = 10;
 
 
 function cls ()
@@ -141,14 +140,11 @@ function crearPersonaje()
     const y = desdeArriba ? gameArea.y1 - 30 : gameArea.y2 - 1;
     const dy = desdeArriba ? 1 : -1;
 
-    if (Math.random() < 0.5)
-    {
-        new Acelerador(x, y, dy);
-    }
-    else
-    {
-        new Venenoso(x, y, dy);
-    }
+    const Tipo = CONFIG_PERSONAJES.tipos[
+        Math.floor(Math.random() * CONFIG_PERSONAJES.tipos.length)
+    ];
+
+    new Tipo(x, y, dy);
 }
 
 
@@ -329,6 +325,9 @@ class Jugador extends Entidad
         this.velocidad = this.velocidadNormal;
         this.tiempoRalentizado = 0;
 
+        this.alturaOriginal = 120;
+        this.tiempoAchicado = 0;
+
         this.width = 20;
         this.height = 120;
         this.color = color;
@@ -350,10 +349,18 @@ class Jugador extends Entidad
         this.y = (gameArea.y2 - gameArea.y1) / 2 + gameArea.y1 - this.height / 2;
     }
 
-    enlentecer()
+    enlentecer(nuevaVelocidad = 2, duracion = 180)
     {
-        this.velocidad = 2;
-        this.tiempoRalentizado = 180;
+        this.velocidad = nuevaVelocidad;
+        this.tiempoRalentizado = duracion;
+    }
+
+    achicar(nuevaAltura = 60, duracion = 180)
+    {
+        this.alturaOriginal ??= this.height;
+
+        this.height = nuevaAltura;
+        this.tiempoAchicado = duracion;
     }
 
     update ()
@@ -379,6 +386,16 @@ class Jugador extends Entidad
             if (this.tiempoRalentizado === 0)
             {
                 this.velocidad = this.velocidadNormal;
+            }
+        }
+
+        if (this.tiempoAchicado > 0)
+        {
+            this.tiempoAchicado--;
+
+            if (this.tiempoAchicado === 0)
+            {
+                this.height = this.alturaOriginal;
             }
         }
     }
@@ -478,7 +495,7 @@ class Pelota extends Entidad
 
     update ()
 {
-    if (finjuego)
+    if (estadoJuego !== "jugando")
     {
         this.dx = 0;
         this.dy = 0;
@@ -500,8 +517,9 @@ class Pelota extends Entidad
     {
         puntosDerecha++;
 
-        if (puntosDerecha >= 10)
+        if (puntosDerecha >= PUNTOS_PARA_GANAR)
         {
+            estadoJuego = "fin";
             finjuego = true;
         }
 
@@ -515,8 +533,9 @@ if (this.x >= gameArea.x2 - this.width)
 {
     puntosIzquierda++;
 
-    if (puntosIzquierda >= 10)
+    if (puntosIzquierda >= PUNTOS_PARA_GANAR)
     {
+        estadoJuego = "fin";
         finjuego = true;
     }
 
@@ -578,6 +597,31 @@ if (this.x >= gameArea.x2 - this.width)
 
 class Personaje extends Entidad
 {
+    constructor()
+    {
+        super();
+
+        this.estado = "normal";
+        this.rebotesVerticales = 0;
+        this.maxRebotesVerticales = 1;
+
+         this.cambioX = 0.03;
+    }
+
+    mover()
+    {
+        this.x += this.dx;
+        this.y += this.dy;
+    }
+
+    reboteLateral()
+    {
+        if (this.x <= gameArea.x1 || this.x >= gameArea.x2 - this.width)
+        {
+            this.dx *= -1;
+        }
+    }
+
     rebotarConJugadores()
     {
         for (const e of Entidad.entidades)
@@ -589,21 +633,40 @@ class Personaje extends Entidad
         }
     }
 
-    update()
+    cambiarEstado(nuevoEstado)
     {
-        super.update();
+        if (this.estado === nuevoEstado) return;
 
-        this.tiempo++;
+        this.estado = nuevoEstado;
 
-        this.y = this.yBase + Math.sin(this.tiempo * this.frecuencia) * this.amplitud;
-
-        if (this.x > gameArea.x2)
+        if (this.estado === "enojado")
         {
-            this.x = -this.width;
+            this.dx *= 2;
+            this.dy *= 2;
         }
     }
 
+    reboteVertical()
+    {
+        if (this.dy > 0 && this.y >= gameArea.y2 - this.height)
+        {
+            this.y = gameArea.y2 - this.height;
+            this.dy *= -1;
+            this.rebotesVerticales++;
+        }
 
+        if (this.dy < 0 && this.y <= gameArea.y1)
+        {
+            this.y = gameArea.y1;
+            this.dy *= -1;
+            this.rebotesVerticales++;
+        }
+
+        if (this.rebotesVerticales > this.maxRebotesVerticales)
+        {
+            this.remove();
+        }
+    }
 }
 
 class Venenoso extends Personaje
@@ -621,11 +684,6 @@ class Venenoso extends Personaje
 
         this.dy = dy;
         this.dx = Math.random() * 2 - 1;
-
-        this.cambioX = 0.03;
-
-        this.rebotesVerticales = 0;
-        this.maxRebotesVerticales = 1;
     }
 
     update()
@@ -671,9 +729,8 @@ class Venenoso extends Personaje
         {
             if (e instanceof Jugador && colision(this, e))
             {
-                e.velocidad = 2;
 
-                e.enlentecer();
+                e.enlentecer(2, 180);
                 
                 this.remove();
                 return;
@@ -684,6 +741,8 @@ class Venenoso extends Personaje
     onColision(pelota)
     {
         if (!(pelota instanceof Pelota)) return;
+
+        this.cambiarEstado("enojado");
 
         this.dy *= -1;
         this.dx *= -1;
@@ -708,11 +767,6 @@ class Acelerador extends Personaje
         this.dy = dy;
 
         this.dx = Math.random() * 2 - 1;
-        this.cambioX = 0.03;
-
-        this.rebotesVerticales = 0;
-        this.maxRebotesVerticales = 1;
-
         this.recuperando = false;
     }
 
@@ -776,11 +830,75 @@ class Acelerador extends Personaje
 
         pelota.acelerar(0.5);
 
+        this.cambiarEstado("enojado");
         this.dy *= -1;
-        this.dx *= 2;
         this.recuperando = true;
     }
 }
+
+class Achicador extends Personaje
+{
+    constructor(x, y, dy)
+    {
+        super();
+
+        this.x = x;
+        this.y = y;
+
+        this.width = 30;
+        this.height = 30;
+
+        this.color = 14;
+
+        this.dy = dy;
+        this.dx = Math.random() * 2 - 1;
+
+    }
+
+   tocarJugadores()
+    {
+        for (const e of Entidad.entidades)
+        {
+            if (e instanceof Jugador && colision(this, e))
+            {
+                console.log("Achicador tocó jugador");
+
+                e.achicar(40, 600);
+
+                this.remove();
+                return;
+            }
+        }
+    }
+
+    onColision(pelota)
+    {
+        if (!(pelota instanceof Pelota)) return;
+
+        console.log("Achicador enojado");
+
+        this.cambiarEstado("enojado");
+    }
+
+    update()
+    {
+        this.mover();
+
+        this.tocarJugadores();
+
+        this.reboteLateral();
+        this.reboteVertical();
+    }
+
+
+}
+
+const CONFIG_PERSONAJES = {
+    max: 4,
+    respawn: 60,
+     tiempoSpawn: 0,
+    tipos: [Acelerador, Venenoso, Achicador]
+};
 
 
 function hud ()
@@ -803,6 +921,52 @@ function hud ()
         'middle'
     );
 
+    if (estadoJuego === "inicio")
+    {
+        ctx.fillStyle = '#0009';
+        ctx.fillRect(0, 0, width, height);
+
+        textFill(
+            "PONG INTERVENIDO",
+            width / 2,
+            height / 2 - 70,
+            12,
+            'bold 48px sans',
+            'center',
+            'middle'
+        );
+
+        textFill(
+            "Jugador izquierdo: W / S",
+            width / 2,
+            height / 2,
+            7,
+            'bold 22px sans',
+            'center',
+            'middle'
+        );
+
+        textFill(
+            "Jugador derecho: ↑ / ↓",
+            width / 2,
+            height / 2 + 35,
+            7,
+            'bold 22px sans',
+            'center',
+            'middle'
+        );
+
+        textFill(
+            "Presioná ENTER para empezar",
+            width / 2,
+            height / 2 + 90,
+            10,
+            'bold 26px sans',
+            'center',
+            'middle'
+        );
+    }
+
     if (finjuego)
     {
         ctx.fillStyle = '#0004'; // Negro con transparencia
@@ -813,8 +977,8 @@ function hud ()
 
         ctx.fillStyle = paleta[8];
         ctx.fillRect(
-            0, height / 2 - 40,
-            width, 80
+            0, height / 2 - 55,
+            width, 110
         );
 
         textFill(
@@ -828,7 +992,37 @@ function hud ()
                 'center',
                 'middle'
         );
+
+        textFill(
+                "ENTER PARA REINICIAR",
+                width / 2,
+                height / 2 + 35,
+                7,
+                'bold 22px sans',
+                'center',
+                'middle'
+        );
     }
+}
+
+function reiniciarJuego()
+{
+    Entidad.entidades = [];
+
+    puntosIzquierda = 0;
+    puntosDerecha = 0;
+    finjuego = false;
+    estadoJuego = "jugando";
+
+    CONFIG_PERSONAJES.tiempoSpawn = 0;
+    proximoDesdeArriba = true;
+
+    new Jugador('derecha', 'flechaArriba', 'flechaAbajo', 9);
+    new Jugador('izquierda', 'w', 's', 12);
+
+    const p = new Pelota();
+    crearPersonaje();
+    p.resetMovimiento();
 }
 
 function init ()
@@ -844,7 +1038,7 @@ function init ()
     const p = new Pelota();
 
     crearPersonaje();
-    crearPersonaje();
+  
     
     p.resetMovimiento();
 
@@ -854,20 +1048,38 @@ function init ()
 
 function update ()
 {
-    if (contarPersonajes() < maxPersonajes && tiempoSpawnPersonaje <= 0)
+    if (estadoJuego === "inicio")
     {
-        crearPersonaje();
+        if (Control.enter)
+        {
+            estadoJuego = "jugando";
+        }
 
-        tiempoSpawnPersonaje = TIEMPO_RESPAWN;
+        return;
     }
 
-    tiempoSpawnPersonaje--;
+    if (estadoJuego === "fin")
+    {
+        if (Control.enter)
+        {
+            reiniciarJuego();
+        }
+
+        return;
+    }
+
+    if (contarPersonajes() < CONFIG_PERSONAJES.max && CONFIG_PERSONAJES.tiempoSpawn <= 0)
+    {
+        crearPersonaje();
+        CONFIG_PERSONAJES.tiempoSpawn = CONFIG_PERSONAJES.respawn;
+    }
+
+    CONFIG_PERSONAJES.tiempoSpawn--;
 
     for (const e of Entidad.entidades)
     {
         e.update();
     }
-
 }
 
     function draw ()
