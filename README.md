@@ -2,6 +2,8 @@
 
 **Jugar online:**
 https://pablonauta.github.io/pongintervenido/
+
+**Jugar online:**
 https://pong.tecnografic.com.uy/
 
 ## Descripción
