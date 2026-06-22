@@ -2,6 +2,7 @@
 
 **Jugar online:**
 https://pablonauta.github.io/pongintervenido/
+https://pong.tecnografic.com.uy/
 
 ## Descripción
 
@@ -10,7 +11,7 @@ Pong Intervenido es una versión modificada del clásico Pong para dos jugadores
 Además de la pelota y las paletas tradicionales, aparecen personajes especiales que alteran el desarrollo de la partida:
 
 * Aceleradores que aumentan la velocidad de la pelota.
-* Venenosos que enlentece a las paletas de los jugadores.
+* Venenosos que enlentecen a las paletas de los jugadores.
 * Achicadores que reducen el tamaño de las paletas.
 * Sistema de puntaje.
 * Fin de partida y reinicio del juego.
