@@ -975,12 +975,17 @@ function hud ()
             width, height
         );
 
+        const cartelAncho = 560;
+        const cartelAlto = 110;
+        const cartelX = width / 2 - cartelAncho / 2;
+        const cartelY = height / 2 - cartelAlto / 2;
+
         ctx.fillStyle = paleta[8];
         ctx.fillRect(
-            gameArea.x1,
-            height / 2 - 55,
-            gameArea.x2 - gameArea.x1,
-            110
+            cartelX,
+            cartelY,
+            cartelAncho,
+            cartelAlto
         );
 
         textFill(
