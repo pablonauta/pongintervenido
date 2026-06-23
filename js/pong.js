@@ -896,7 +896,7 @@ class Achicador extends Personaje
 const CONFIG_PERSONAJES = {
     max: 4,
     respawn: 60,
-     tiempoSpawn: 0,
+    tiempoSpawn: 0,
     tipos: [Acelerador, Venenoso, Achicador]
 };
 
@@ -977,8 +977,10 @@ function hud ()
 
         ctx.fillStyle = paleta[8];
         ctx.fillRect(
-            0, height / 2 - 55,
-            width, 110
+            gameArea.x1,
+            height / 2 - 55,
+            gameArea.x2 - gameArea.x1,
+            110
         );
 
         textFill(
