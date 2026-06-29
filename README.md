@@ -1,5 +1,11 @@
 # Pong Intervenido
 
+## Repositorio
+
+Código fuente disponible en:
+
+https://github.com/pablonauta/pongintervenido
+
 **Jugar online:**
 https://pablonauta.github.io/pongintervenido/
 
